@@ -3,9 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Mindmap-AI: Untangle Your Thoughts</title>
+    <link type="text/css" rel="stylesheet" href="//cdn.jsdelivr.net/npm/jsmind@0.9.0/style/jsmind.css">
+    <script type="text/javascript" src="//cdn.jsdelivr.net/npm/jsmind@0.9.0/es6/jsmind.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+        .header {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: rgba(255,255,255,0.9);
+        }
+        .chat-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        #chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9ff;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+        }
+        .user-message {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .ai-message {
+            background: white;
+            border: 2px solid #e0e6ff;
+            color: #555;
+        }
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+        #user-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e6ff;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        #user-input:focus {
+            border-color: #667eea;
+        }
+        #send-btn {
+            margin-left: 10px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #jsmind_container {
+            flex: 1;
+            position: relative;
+        }
+        .mindmap-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-    
+    <div class="header">
+        <h1>🧠 Mindmap-AI</h1>
+        <p>Turn overthinking into clarity. Chat your thoughts, see AI-powered solutions as a mind map.</p>
+    </div>
+    <div class="chat-section">
+        <div id="chat-messages">
+            <div class="message ai-message">
+                Hi! Tell me what's stressing you—studies, relationships, family? I'll map it out with solutions.
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type your thoughts here..." autocomplete="off">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let jm = null;
+        const container = 'jsmind_container';
+        const messagesEl = document.getElementById('chat-messages');
+        const inputEl = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // Add message to chat
+        function addMessage(text, isUser = false) {
+            const msg = document.createElement('div');
+            msg.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            msg.textContent = text;
+            messagesEl.appendChild(msg);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        // Generate sample mind data (simulate AI: central problem + solution branches)
+        function generateMindData(problem) {
+            const solutions = {
+                studies: ['Break tasks into 25-min Pomodoros', 'Prioritize with Eisenhower matrix', 'Study with active recall', 'Take nature walks'],
+                relationships: ['Practice active listening', 'Express needs with "I feel" statements', 'Set healthy boundaries', 'Schedule quality time'],
+                family: ['Have open family meetings', 'Share chores equally', 'Practice gratitude daily', 'Seek compromise on conflicts']
+            };
+            const category = Object.keys(solutions).find(key => problem.toLowerCase().includes(key)) || 'general';
+            const branches = solutions[category];
+
+            return {
+                meta: { name: 'mindmap', version: '1.0' },
+                format: 'node_tree',
+                data: {
+                    id: 'root',
+                    topic: problem,
+                    children: branches.map((branch, i) => ({
+                        id: `sol${i}`,
+                        topic: branch,
+                        direction: i % 2 === 0 ? 'left' : 'right',
+                        children: [{ id: `tip${i}`, topic: 'Try this today!' }]
+                    }))
+                }
+            };
+        }
+
+        // Show mind map
+        function showMindMap(data) {
+            const options = {
+                container: container,
+                theme: 'primary',
+                editable: true,
+                layout: { hspace: 20, vspace: 40 }
+            };
+            if (jm) jm.destroy();
+            jm = new jsMind(options);
+            jm.show(data);
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', handleSend);
+        inputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        function handleSend() {
+            const text = inputEl.value.trim();
+            if (!text) return;
+            addMessage(text, true);
+            inputEl.value = '';
+
+            // Simulate AI response
+            setTimeout(() => {
+                addMessage(`Analyzing "${text}"... Generating mind map with solutions.`);
+                const mindData = generateMindData(text);
+                showMindMap(mindData);
+                addMessage('Mind map ready! Edit nodes, expand branches. Feel better?');
+            }, 1000);
+        }
+
+        // Init placeholder
+        document.body.innerHTML += `<div id="${container}" class="mindmap-placeholder">Chat to generate your mind map</div>`;
+    </script>
 </body>
 </html>
