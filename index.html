@@ -130,7 +130,6 @@
         const inputEl = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
 
-        // Add message to chat
         function addMessage(text, isUser = false) {
             const msg = document.createElement('div');
             msg.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
@@ -138,8 +137,6 @@
             messagesEl.appendChild(msg);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
-
-        // Generate sample mind data (simulate AI: central problem + solution branches)
         function generateMindData(problem) {
             const solutions = {
                 studies: ['Break tasks into 25-min Pomodoros', 'Prioritize with Eisenhower matrix', 'Study with active recall', 'Take nature walks'],
@@ -165,7 +162,6 @@
             };
         }
 
-        // Show mind map
         function showMindMap(data) {
             const options = {
                 container: container,
@@ -178,7 +174,6 @@
             jm.show(data);
         }
 
-        // Event listeners
         sendBtn.addEventListener('click', handleSend);
         inputEl.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSend();
@@ -189,8 +184,7 @@
             if (!text) return;
             addMessage(text, true);
             inputEl.value = '';
-
-            // Simulate AI response
+            
             setTimeout(() => {
                 addMessage(`Analyzing "${text}"... Generating mind map with solutions.`);
                 const mindData = generateMindData(text);
@@ -199,7 +193,6 @@
             }, 1000);
         }
 
-        // Init placeholder
         document.body.innerHTML += `<div id="${container}" class="mindmap-placeholder">Chat to generate your mind map</div>`;
     </script>
 </body>
